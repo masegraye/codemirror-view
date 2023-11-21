@@ -36,7 +36,7 @@ export class InputState {
   // -1 means not in a composition. Otherwise, this counts the number
   // of changes made during the composition. The count is used to
   // avoid treating the start state of the composition, before any
-  // changes have been made, as part of the composition.
+  // changes have been msade, as part of the composition.
   composing = -1
   // Tracks whether the next change should be marked as starting the
   // composition (null means no composition, true means next is the
@@ -748,6 +748,7 @@ function copiedRange(state: EditorState) {
 let lastLinewiseCopy: string | null = null
 
 handlers.copy = handlers.cut = (view, event: ClipboardEvent) => {
+  
   let {text, ranges, linewise} = copiedRange(view.state)
   if (!text && !linewise) return false
   lastLinewiseCopy = linewise ? text : null
@@ -758,15 +759,22 @@ handlers.copy = handlers.cut = (view, event: ClipboardEvent) => {
       scrollIntoView: true,
       userEvent: "delete.cut"
     })
-  let data = brokenClipboardAPI ? null : event.clipboardData
-  if (data) {
-    data.clearData()
-    data.setData("text/plain", text)
-    return true
-  } else {
-    captureCopy(view, text)
-    return false
-  }
+  
+  /* On Mac Catalyst, we need to fall back for cut/copy. However, there appears to be no easy
+  * way to detect this. So for now, ALWAYS fall back. */
+  
+  captureCopy(view, text)
+  return false
+  
+  // let data = brokenClipboardAPI ? null : event.clipboardData
+  // if (data) {
+  //   data.clearData()
+  //   data.setData("text/plain", text)
+  //   return true
+  // } else {
+  //   captureCopy(view, text)
+  //   return false
+  // }
 }
 
 export const isFocusChange = Annotation.define<boolean>()
